@@ -1,0 +1,53 @@
+name: Set up and check FrameForge
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: frameforge-main
+  cancel-in-progress: false
+jobs:
+  setup:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Restore missing application from verified source archive
+        if: hashFiles('package.json') == ''
+        run: |
+          python3 - <<'PY'
+          import hashlib, pathlib, zipfile
+          archive = pathlib.Path('frameforge-full-source.zip')
+          expected = 'f0ea749deec9d6affeb36b9fa03618fadbf4178071caf65e78c8798d13adeae1'
+          assert hashlib.sha256(archive.read_bytes()).hexdigest() == expected, 'Archive changed; review it before extraction'
+          roots = {'server', 'public', 'scripts', 'test', 'docs', 'dist'}
+          files = {'package.json', 'README.md', '.env.example', '.gitignore', '.dockerignore', 'Dockerfile', 'render.yaml'}
+          with zipfile.ZipFile(archive) as z:
+              for entry in z.infolist():
+                  p = pathlib.PurePosixPath(entry.filename)
+                  assert not p.is_absolute() and '..' not in p.parts
+                  assert p.parts[0] == 'frameforge'
+                  relative = pathlib.Path(*p.parts[1:])
+                  if entry.is_dir() or not relative.parts:
+                      continue
+                  if relative.parts[0] not in roots and str(relative) not in files:
+                      continue
+                  relative.parent.mkdir(parents=True, exist_ok=True)
+                  relative.write_bytes(z.read(entry))
+          PY
+      - name: Validate application
+        run: |
+          npm run check
+          npm test
+      - name: Save restored source
+        run: |
+          git add Dockerfile render.yaml package.json README.md .gitignore .dockerignore .env.example server public scripts test docs dist
+          if ! git diff --cached --quiet; then
+            git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'Restore and verify FrameForge application source'
+            git push origin HEAD:main
+          fi
