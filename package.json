@@ -1,0 +1,14 @@
+{
+  "name": "frameforge",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "scripts": {
+    "start": "node server/index.mjs",
+    "test": "node --test test/*.test.mjs",
+    "check": "node --check server/app.mjs && node --check server/providers.mjs && node --check server/config.mjs && node --check server/database.mjs && node --check server/index.mjs && node --check public/app.js && node --check public/legal.js && node --check scripts/container-entry.mjs && node --check scripts/admin-credit.mjs && node --check scripts/backup.mjs && node --check scripts/readiness.mjs"
+  }
+}

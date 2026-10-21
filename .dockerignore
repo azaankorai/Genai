@@ -1,0 +1,10 @@
+.git
+.env
+.env.*
+data
+backups
+node_modules
+*.zip
+dist
+check.cjs
+test

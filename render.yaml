@@ -1,0 +1,47 @@
+services:
+  - type: web
+    name: frameforge
+    runtime: docker
+    plan: starter
+    region: frankfurt
+    healthCheckPath: /healthz
+    numInstances: 1
+    disk:
+      name: frameforge-data
+      mountPath: /var/data
+      sizeGB: 10
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DATA_DIR
+        value: /var/data
+      - key: TRUST_PROXY
+        value: "1"
+      - key: APP_URL
+        sync: false
+      - key: BUSINESS_NAME
+        sync: false
+      - key: SUPPORT_EMAIL
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: EMAIL_FROM
+        sync: false
+      - key: FAL_KEY
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: STRIPE_CREATOR_PRICE_ID
+        sync: false
+      - key: STRIPE_STUDIO_PRICE_ID
+        sync: false
+      - key: CREATOR_MONTHLY_CREDITS
+        value: "200"
+      - key: STUDIO_MONTHLY_CREDITS
+        value: "600"
+      - key: ENABLE_BILLING
+        value: "0"
